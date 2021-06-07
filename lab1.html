@@ -1,0 +1,316 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>Interactive Prime Number Patterns</title>
+<!-- MIT license, https://github.com/neoneye/interactive-prime-number-patterns -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Uses https://github.com/chartjs/Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+<style>
+html {
+    background-color: white;
+    font-family: system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif,Segoe UI Emoji,Segoe UI Symbol;
+}
+html, body, .main-row-container {
+    height: 100%;
+    margin: 0;
+}
+.main-row-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    align-content: stretch;
+}
+.main-row-item-growable {
+    flex-grow: 1;
+}
+.value-container {
+    display: flex;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+.value-container-item {
+    flex: 1;
+}
+.slider-container {
+    height: 25px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+.slider {
+    width: 100%;
+}
+#slider0value {
+    font-weight: bold;
+}
+#canvas-container {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+}
+#overlay-bottom-right {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+.overlay-inner {
+    padding: 10px;
+    background: rgba(128, 128, 128, 0.2);
+}
+</style>
+
+<script>
+var config = {
+    type: 'scatter',
+    data: {
+        datasets: []
+    },
+    options: {
+        animation: false,
+        responsive: true,
+        maintainAspectRatio: false,
+        tooltips: {
+            mode: 'point',
+            callbacks: {
+                label: function(tooltipItem, data) {
+                    var pointItem = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                    var s = pointItem.label;
+                    var is_string = (typeof s == 'string') || (s instanceof String);
+                    if (is_string) {
+                        return s;
+                    } else {
+                        return "x: " + pointItem.x + " y: " + pointItem.y;
+                    }
+                }
+            },
+        },
+        legend: {
+            display: false,
+        },
+        title: {
+            display: true,
+            text: 'a(n) = floor(frac(k * (n+offset)) * prime(n+1)).',
+            fontColor: 'rgba(0,0,0,1.0)',
+            position: 'bottom',
+            fontSize: 25,
+        }
+    }
+};
+
+function isPrime(num) {
+    for ( var i = 2; i < num; i++ ) {
+        if ( num % i === 0 ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function computePrimes(count) {
+    var ary = [2];
+    for ( var i = 3; true; i+=2 ) {
+        if ( isPrime(i) ) {
+            ary.push(i);
+            if (ary.length >= count) {
+                break;
+            }
+        }
+    }
+    return ary;
+}
+
+function rebuildChart(primes, k, offset) {
+    var chart = window.myChart;
+    
+    const count = primes.length;
+    const base = 1;
+    // const base = 2.71828182845904;
+    var data = [];
+    for ( var i = 0; i < count; i+=1 ) {
+        const prime = primes[i];
+        const n = i + offset;
+        const factor = ((n * k) % base);
+        const value = factor * prime;
+        const y = Math.floor(value);
+        dict = {
+            x: i,
+            y: y,
+            label: `a(${i}) = floor(frac(${k} * ${n}) * ${prime}) = ${y}`,
+        };
+        data.push(dict);
+    }
+    
+    const newDataset = {
+        label: 'Dataset',
+        borderWidth: 1,
+        backgroundColor: 'rgba(25,25,25,1.0)',
+        pointRadius: 1,
+        pointHitRadius: 5,
+        fill: false,
+        // showLine: true,
+        // tension: 0,
+        borderColor: 'rgba(0,0,0,0.2)',
+        borderWidth: 1,
+        data: data,
+    };
+    chart.data.datasets.pop();
+    chart.data.datasets.push(newDataset);
+    
+    chart.update();
+}
+
+var slider0Handler = function() {
+    console.log("do nothing");
+};
+
+var updateChart = function() {
+    console.log("do nothing");
+};
+
+function setK(k) {
+    var slider = document.getElementById("slider0");
+    slider.value = (k * 10000) % 10000;
+    var value = document.getElementById("slider0value");
+    value.innerText = `${k}`;
+    window.chartParameterK = k;
+    updateChart();
+}
+
+function setK_EulersNumber() {
+    setK(2.7182818284);
+}
+
+function setK_Pi() {
+    setK(3.1415926535);
+}
+
+function setK_A085849() {
+    setK(0.353236371854); // https://oeis.org/A085849
+}
+
+function setK_Sqrt2() {
+    setK(1.4142135623730951); // https://oeis.org/A002193
+}
+
+function setK_GoldenRatio() {
+    setK(1.61803398874); // https://oeis.org/A001622
+}
+
+function setK_EulerMascheroni() {
+    setK(0.577215664); // https://oeis.org/A001620
+}
+
+function setTermCount(termCount) {
+    window.termCount = termCount;
+    updateChart();
+}
+
+window.onload = function() {
+    var ctx = document.getElementById('canvas').getContext('2d');
+    window.myChart = new Chart(ctx, config);
+    
+    window.termCount = 1000;
+    window.chartParameterK = 0.3333;
+    window.chartParameterOffset = 0;
+    
+    const primes = computePrimes(10000);
+    
+    let slider0 = document.getElementById("slider0");
+    let slider1 = document.getElementById("slider1");
+    let value0 = document.getElementById("slider0value");
+    let value1 = document.getElementById("slider1value");
+    
+    updateChart = function() { 
+        const slicedArrayPrimes = primes.slice(0, window.termCount);
+        rebuildChart(slicedArrayPrimes, window.chartParameterK, window.chartParameterOffset);
+    };
+    
+    slider0Handler = function() {
+        var slider0value = slider0.value;
+        var value = parseInt(slider0value);
+        let value_integer = Math.floor(value / 10000);
+        let value_frac = value % 10000;
+        let value_frac_string = value_frac.toString().padStart(4, "0");
+        window.chartParameterK = value / 10000.0;
+        value0.innerHTML = `${value_integer}.${value_frac_string}`;
+    };
+
+    slider1Handler = function() {
+        var slider1value = slider1.value;
+        var offset = parseInt(slider1value);
+        value1.innerHTML = `${offset}`;
+        window.chartParameterOffset = offset;
+    };
+
+    slider0.oninput = function() {
+        slider0Handler();
+        updateChart();
+    };
+    slider1.oninput = function() {
+        slider1Handler();
+        updateChart();
+    };
+    
+    slider0Handler();
+    slider1Handler();
+    setK_A085849();
+};
+</script>
+
+</head>
+<body>
+    <div class="main-row-container">
+        <div class="main-row-item">
+            <div class="slider-container">
+                <input type="range" min="0" max="10000" value="5000" class="slider" id="slider0">
+            </div>
+        </div>
+        <div class="main-row-item">
+            <div class="value-container">
+                <div class="value-container-item slidevalue">
+                    <span>k</span> &equals; <span id="slider0value">VALUE</span>
+                </div>
+                <div class="value-container-item">
+                    set k:
+                    <button onclick="setK_Pi()">Pi</button>
+                    <button onclick="setK_A085849()">A085849</button>
+                    <button onclick="setK_Sqrt2()">sqrt(2)</button>
+                    <button onclick="setK_EulerMascheroni()">Euler–Mascheroni</button>
+                    <button onclick="setK_GoldenRatio()">Golden Ratio</button>
+                    <button onclick="setK_EulersNumber()">e</button>
+                </div>
+            </div>
+        </div>
+        <div class="main-row-item">
+            <div class="slider-container">
+                <input type="range" min="-50" max="50" value="0" class="slider" id="slider1">
+            </div>
+        </div>
+        <div class="main-row-item">
+            <div class="value-container">
+                <div class="value-container-item slidevalue">
+                    <span>offset</span> &equals; <span id="slider1value">VALUE</span>
+                </div>
+                <div class="value-container-item">
+                    number of terms:
+                    <button onclick="setTermCount(100)">100</button>
+                    <button onclick="setTermCount(200)">200</button>
+                    <button onclick="setTermCount(500)">500</button>
+                    <button onclick="setTermCount(1000)">1000</button>
+                    <button onclick="setTermCount(2000)">2000</button>
+                    <button onclick="setTermCount(5000)">5000</button>
+                    <button onclick="setTermCount(10000)">10000</button>
+                </div>
+            </div>
+        </div>
+        <div class="main-row-item main-row-item-growable">
+            <div id="canvas-container">
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+    </div>
+    <div id="overlay-bottom-right">
+        <div class="overlay-inner">More info at <a href="https://oeis.org/A342730">https://oeis.org/A342730</a></div>
+    </div>
+</body>
+</html>
