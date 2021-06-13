@@ -131,36 +131,73 @@ function rebuildChart(primes, k, offset) {
     const count = primes.length;
     const base = 1;
     // const base = 2.71828182845904;
-    var data = [];
+    var dataAll = [];
     for ( var i = 0; i < count; i+=1 ) {
-        const prime = primes[i];
+        const prime0 = primes[i];
+        const prime1 = primes[i + 1];
+        const primeGap = prime1 - prime0;
         const n = i + offset;
         const factor = ((n * k) % base);
-        const value = factor * prime;
+        const value = factor * prime0;
         const y = Math.floor(value);
         dict = {
             x: i,
             y: y,
-            label: `a(${i}) = floor(frac(${k} * ${n}) * ${prime}) = ${y}`,
+            label: `a(${i}) = floor(frac(${k} * ${n}) * ${prime0}) = ${y}`,
+            primeGap: primeGap,
         };
-        data.push(dict);
+        dataAll.push(dict);
     }
     
-    const newDataset = {
-        label: 'Dataset',
-        borderWidth: 1,
+    const showTwinPrimes = false;
+    // const showTwinPrimes = true;
+    
+    var dataHighlight = [];
+    var dataNotHighlight = [];
+    if (showTwinPrimes) {
+        for ( var i = 0; i < dataAll.length; i += 1 ) {
+            const data = dataAll[i];
+            if (data.primeGap == 2) {
+                dataHighlight.push(data);
+            } else {
+                dataNotHighlight.push(data);
+            }
+        }
+    }
+    const datasetAll = {
+        label: 'All',
         backgroundColor: 'rgba(25,25,25,1.0)',
         pointRadius: 1,
         pointHitRadius: 5,
-        fill: false,
-        // showLine: true,
-        // tension: 0,
-        borderColor: 'rgba(0,0,0,0.2)',
-        borderWidth: 1,
-        data: data,
+        borderWidth: 0,
+        data: dataAll,
     };
-    chart.data.datasets.pop();
-    chart.data.datasets.push(newDataset);
+    const datasetHighlight = {
+        label: 'Highlight',
+        backgroundColor: 'rgba(25,25,25,1.0)',
+        pointRadius: 2,
+        pointHitRadius: 5,
+        borderWidth: 0,
+        data: dataHighlight,
+    };
+    const datasetNotHighlight = {
+        label: 'Not Highlight',
+        backgroundColor: 'rgba(180,180,180,1.0)',
+        pointRadius: 1,
+        pointHitRadius: 5,
+        borderWidth: 0,
+        data: dataNotHighlight,
+    };
+    
+    while (chart.data.datasets.length > 0) {
+        chart.data.datasets.pop();
+    }
+    if (showTwinPrimes) {
+        chart.data.datasets.push(datasetHighlight);
+        chart.data.datasets.push(datasetNotHighlight);
+    } else {
+        chart.data.datasets.push(datasetAll);
+    }
     
     chart.update();
 }
@@ -219,7 +256,7 @@ window.onload = function() {
     window.chartParameterK = 0.3333;
     window.chartParameterOffset = 0;
     
-    const primes = computePrimes(10000);
+    const primes = computePrimes(10001);
     
     let slider0 = document.getElementById("slider0");
     let slider1 = document.getElementById("slider1");
