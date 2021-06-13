@@ -13,6 +13,10 @@ html, body, .main-row-container {
     height: 100%;
     margin: 0;
 }
+html, body {
+    /* disable scrolling */
+    overflow: hidden; 
+}
 .main-row-container {
     display: flex;
     flex-direction: column;
@@ -20,8 +24,15 @@ html, body, .main-row-container {
     align-items: stretch;
     align-content: stretch;
 }
+.main-row-item {
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: 0;
+}
 .main-row-item-growable {
     flex-grow: 1;
+    position: relative;
+    padding-top: 10px;
 }
 .value-container {
     display: flex;
@@ -33,6 +44,7 @@ html, body, .main-row-container {
 }
 .slider-container {
     height: 25px;
+    padding-top: 10px;
     padding-left: 10px;
     padding-right: 10px;
 }
@@ -41,12 +53,6 @@ html, body, .main-row-container {
 }
 #slider0value {
     font-weight: bold;
-}
-#canvas-container {
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-    padding: 10px;
 }
 #overlay-bottom-right {
     position: absolute;
@@ -303,10 +309,8 @@ window.onload = function() {
                 </div>
             </div>
         </div>
-        <div class="main-row-item main-row-item-growable">
-            <div id="canvas-container">
-                <canvas id="canvas"></canvas>
-            </div>
+        <div class="main-row-item-growable">
+            <canvas id="canvas"></canvas>
         </div>
     </div>
     <div id="overlay-bottom-right">
