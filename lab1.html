@@ -219,6 +219,10 @@ function setK(k) {
     updateChart();
 }
 
+function setK_1div3() {
+    setK(0.333333333333333);
+}
+
 function setK_EulersNumber() {
     setK(2.7182818284);
 }
@@ -316,6 +320,7 @@ window.onload = function() {
                 <div class="value-container-item">
                     set k:
                     <button onclick="setK_Pi()">Pi</button>
+                    <button onclick="setK_1div3()">1/3</button>
                     <button onclick="setK_A085849()">A085849</button>
                     <button onclick="setK_Sqrt2()">sqrt(2)</button>
                     <button onclick="setK_EulerMascheroni()">Euler–Mascheroni</button>
